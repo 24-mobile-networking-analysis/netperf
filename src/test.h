@@ -46,34 +46,34 @@ struct Test {
 
   void Stop() { manually_stopped = true; }
 
-  Duration Duration() const { return Now() - start_time; }
-  bool Finished() const {
-    return manually_stopped || Duration() >= Seconds(plan.time);
+  Duration GetDuration() const { return Now() - start_time; }
+  bool IsFinished() const {
+    return manually_stopped || GetDuration() >= Seconds(plan.time);
   }
 
-  double RxBandwidth() const {
+  double GetRxBandwidth() const {
     return static_cast<double>(rx - last_rx_) * 8 /
            ToSeconds(Now() - last_report_time_);
   }
 
-  double TxBandwidth() const {
+  double GetTxBandwidth() const {
     return static_cast<double>(tx - last_tx_) * 8 /
            ToSeconds(Now() - last_report_time_);
   }
 
   void Report(bool finish = false) {
     if (finish) {
-      fmt::println("time: {}s", ToSeconds(Duration()));
+      fmt::println("time: {}s", ToSeconds(GetDuration()));
       fmt::println("rx: {}Bytes", FormatBytes(rx));
       fmt::println("tx: {}Bytes", FormatBytes(tx));
       fmt::println("tx packets: {}, rx packets: {}", tx_packets, rx_packets);
       fmt::println("");
     } else {
-      fmt::println("time: {}s", ToSeconds(Duration()));
+      fmt::println("time: {}s", ToSeconds(GetDuration()));
       fmt::println("rx: {}Bytes ({}bits/sec)", FormatBytes(rx),
-                   FormatBytes(RxBandwidth()));
+                   FormatBytes(GetRxBandwidth()));
       fmt::println("tx: {}Bytes ({}bits/sec)", FormatBytes(tx),
-                   FormatBytes(TxBandwidth()));
+                   FormatBytes(GetTxBandwidth()));
       fmt::println("tx packets: {}, rx packets: {}", tx_packets, rx_packets);
       fmt::println("");
       last_report_time_ = Now();

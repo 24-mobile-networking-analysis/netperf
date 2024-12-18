@@ -2,12 +2,10 @@
 
 #include "error.h"
 #include "fd.h"
-#include "fmt/format.h"
 #include "test.h"
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <cstdint>
-#include <variant>
 
 class Line {
   Fd fd_;
@@ -15,44 +13,56 @@ class Line {
 
   void WriteLong(uint32_t value) const {
     auto result = htonl(value);
-    if (send(fd_.Value(), &result, sizeof(result), MSG_NOSIGNAL) < 0) {
+    if (send(fd_.GetValue(), &result, sizeof(result), MSG_NOSIGNAL) < 0) {
       throw StandardError("failed to send");
     }
   }
 
   void WriteShort(uint16_t value) const {
     auto result = htons(value);
-    if (send(fd_.Value(), &result, sizeof(result), MSG_NOSIGNAL) < 0) {
+    if (send(fd_.GetValue(), &result, sizeof(result), MSG_NOSIGNAL) < 0) {
       throw StandardError("failed to send");
     }
   }
 
   uint32_t ReadLong() const {
     uint32_t result;
-    if (recv(fd_.Value(), &result, sizeof(result), MSG_NOSIGNAL) < 0) {
+    auto read = recv(fd_.GetValue(), &result, sizeof(result), MSG_NOSIGNAL);
+    if (read < 0) {
       throw StandardError("failed to recv");
+    }
+    if (read == 0) {
+      throw StandardError("connection closed");
     }
     return ntohl(result);
   }
 
   uint16_t ReadShort() const {
     uint16_t result;
-    if (recv(fd_.Value(), &result, sizeof(result), MSG_NOSIGNAL) < 0) {
+    auto read = recv(fd_.GetValue(), &result, sizeof(result), MSG_NOSIGNAL);
+    if (read < 0) {
       throw StandardError("failed to recv");
+    }
+    if (read == 0) {
+      throw StandardError("connection closed");
     }
     return ntohs(result);
   }
 
   uint8_t ReadByte() const {
     uint8_t result;
-    if (recv(fd_.Value(), &result, sizeof(result), MSG_NOSIGNAL) < 0) {
+    auto read = recv(fd_.GetValue(), &result, sizeof(result), MSG_NOSIGNAL);
+    if (read < 0) {
       throw StandardError("failed to recv");
+    }
+    if (read == 0) {
+      throw StandardError("connection closed");
     }
     return result;
   }
 
   void WriteByte(uint8_t value) const {
-    if (send(fd_.Value(), &value, sizeof(value), MSG_NOSIGNAL) < 0) {
+    if (send(fd_.GetValue(), &value, sizeof(value), MSG_NOSIGNAL) < 0) {
       throw StandardError("failed to send");
     }
   }
@@ -159,7 +169,7 @@ class Line {
 
   void WriteStopTest() { WriteSignalType(Signal::Type::kStopTest); }
 
-  sockaddr_in Address() const { return address_; }
+  sockaddr_in GetAddress() const { return address_; }
 
-  Fd Fd() const { return fd_; }
+  Fd GetFd() const { return fd_; }
 };

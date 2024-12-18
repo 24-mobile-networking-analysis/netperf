@@ -21,7 +21,7 @@ RawSocketConn::RawSocketConn(sockaddr_in destination, char const* interface,
   fd_ = Fd(raw_fd);
   fd_.SetSocketOptions(plan);
 
-  if (setsockopt(fd_.Value(), SOL_SOCKET, SO_BINDTODEVICE, interface,
+  if (setsockopt(fd_.GetValue(), SOL_SOCKET, SO_BINDTODEVICE, interface,
                  sizeof(interface)) < 0) {
     throw StandardError("failed to bind to device");
   }
@@ -30,7 +30,7 @@ RawSocketConn::RawSocketConn(sockaddr_in destination, char const* interface,
 int RawSocketConn::Send(char const* data, int size) {
   int sent;
   struct sockaddr addr;
-  if ((sent = sendto(fd_.Value(), data, size, MSG_NOSIGNAL,
+  if ((sent = sendto(fd_.GetValue(), data, size, MSG_NOSIGNAL,
                      reinterpret_cast<sockaddr*>(&destination_),
                      sizeof(destination_))) < 0) {
     if (errno == ENOBUFS) {
@@ -54,7 +54,7 @@ int RawSocketConn::Receive(char data[], int size, int& skip_hint) {
   msg.msg_iov = iov;
   msg.msg_iovlen = sizeof(iov) / sizeof(iov[0]);
 
-  int received = recvmsg(fd_.Value(), &msg, MSG_NOSIGNAL);
+  int received = recvmsg(fd_.GetValue(), &msg, MSG_NOSIGNAL);
   if (received < 0) {
     fmt::println("failed to receive: {}", strerror(errno));
   }
@@ -63,11 +63,11 @@ int RawSocketConn::Receive(char data[], int size, int& skip_hint) {
   return received - sizeof(header);
 }
 
-int RawSocketConn::AdditionalBufferSize() { return 0; }
+int RawSocketConn::GetAdditionalBufferSize() { return 0; }
 
 std::shared_ptr<RawSocketConn> RawSocketConn::Create(sockaddr_in address,
                                                      char const* interface,
                                                      Plan const& plan) {
   return std::make_shared<RawSocketConn>(address, interface, plan);
 }
-void RawSocketConn::Shutdown() { shutdown(fd_.Value(), SHUT_RDWR); }
+void RawSocketConn::Shutdown() { shutdown(fd_.GetValue(), SHUT_RDWR); }

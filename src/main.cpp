@@ -1,7 +1,6 @@
 #include "client.h"
 #include "conn.h"
 #include "fmt/base.h"
-#include "fmt/format.h"
 #include "line.h"
 #include "options.h"
 #include "raw_socket.h"
@@ -14,7 +13,6 @@
 #include "udp.h"
 #include "util.h"
 #include <fmt/core.h>
-#include <condition_variable>
 #include <csignal>
 #include <cstdio>
 #include <exception>
@@ -29,16 +27,18 @@ std::shared_ptr<Conn> CreateTransferConnection(Line& line, Plan const& plan,
                                                Options const& options) {
   switch (plan.protocol) {
     case Protocol::kTCP:
-      if (options.server) return TcpConn::CreateServerSide(line, plan);
+      if (options.server) return TcpConn::CreateServerSide(plan);
       if (options.client) return TcpConn::CreateClientSide(line, plan);
 
     case Protocol::kRawSocket:
-      return RawSocketConn::Create(line.Address(), options.interface, plan);
+      return RawSocketConn::Create(line.GetAddress(), options.interface, plan);
 
     case Protocol::kUDP: {
-      return UdpConn::Create(line.Address(), plan);
+      return UdpConn::Create(line.GetAddress(), plan);
     }
   }
+
+  throw std::runtime_error("unknown protocol");
 }
 
 void StartTest(Test& test, Conn& connection, Options const& options) {
@@ -65,7 +65,7 @@ void StartServer(Options options) {
   auto server = LineServer::Listen();
   while (true) {
     auto line = server.Accept();
-    fmt::println("new connection: {}", line.Address().sin_port);
+    fmt::println("new connection: {}", line.GetAddress().sin_port);
 
     std::thread(
         [&server](Options options, Line line) {

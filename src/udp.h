@@ -17,7 +17,7 @@ class UdpConn : public Conn {
   explicit UdpConn(sockaddr_in destination, Plan const& plan);
   int Send(char const* data, int size) override;
   int Receive(char data[], int size, int& skip_hint) override;
-  int AdditionalBufferSize() override;
+  int GetAdditionalBufferSize() override;
 
   static std::shared_ptr<UdpConn> Create(sockaddr_in destination,
                                          Plan const& plan);

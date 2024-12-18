@@ -2,8 +2,7 @@
 
 #include "conn.h"
 #include "fd.h"
-#include "options.h"
-#include "server.h"
+#include "line.h"
 #include <arpa/inet.h>
 #include <linux/ip.h>
 #include <netinet/in.h>
@@ -30,13 +29,12 @@ class TcpConn : public Conn {
   explicit TcpConn(Fd const& fd) { fd_ = fd; }
   int Send(char const* data, int size) override;
   int Receive(char data[], int size, int& skip_hint) override;
-  int AdditionalBufferSize() override;
+  int GetAdditionalBufferSize() override;
   ~TcpConn() override = default;
 
   static std::shared_ptr<TcpConn> CreateClientSide(Line const& line,
                                                    Plan const& plan);
-  static std::shared_ptr<TcpConn> CreateServerSide(Line const& line,
-                                                   Plan const& plan);
+  static std::shared_ptr<TcpConn> CreateServerSide(Plan const& plan);
 
   void Shutdown() override;
 };

@@ -18,7 +18,7 @@ class RawSocketConn : public Conn {
                 Plan const& plan);
   int Send(char const* data, int size) override;
   int Receive(char data[], int size, int& skip_hint) override;
-  int AdditionalBufferSize() override;
+  int GetAdditionalBufferSize() override;
 
   static std::shared_ptr<RawSocketConn> Create(sockaddr_in destination,
                                                char const* interface,

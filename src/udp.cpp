@@ -25,7 +25,7 @@ UdpConn::UdpConn(sockaddr_in destination, Plan const& plan)
   address.sin_port = htons(kUdpPort);
   address.sin_family = AF_INET;
   address.sin_addr.s_addr = htonl(INADDR_ANY);
-  if (bind(fd_.Value(), reinterpret_cast<sockaddr*>(&address),
+  if (bind(fd_.GetValue(), reinterpret_cast<sockaddr*>(&address),
            sizeof(address)) < 0) {
     throw StandardError("failed to bind");
   }
@@ -35,7 +35,7 @@ int UdpConn::Send(char const* data, int size) {
   int sent;
   struct sockaddr addr;
   sent =
-      sendto(fd_.Value(), data, size, MSG_NOSIGNAL,
+      sendto(fd_.GetValue(), data, size, MSG_NOSIGNAL,
              reinterpret_cast<sockaddr*>(&destination_), sizeof(destination_));
   if (sent < 0) {
     if (errno == ENOBUFS) {
@@ -47,7 +47,7 @@ int UdpConn::Send(char const* data, int size) {
 }
 
 int UdpConn::Receive(char data[], int size, int& skip_hint) {
-  auto received = recv(fd_.Value(), data, size, MSG_NOSIGNAL);
+  auto received = recv(fd_.GetValue(), data, size, MSG_NOSIGNAL);
   if (received < 0) {
     fmt::println("failed to receive: {}", strerror(errno));
   }
@@ -56,11 +56,11 @@ int UdpConn::Receive(char data[], int size, int& skip_hint) {
   return received;
 }
 
-int UdpConn::AdditionalBufferSize() { return 0; }
+int UdpConn::GetAdditionalBufferSize() { return 0; }
 
 std::shared_ptr<UdpConn> UdpConn::Create(sockaddr_in destination,
                                          Plan const& plan) {
   destination.sin_port = htons(kUdpPort);
   return std::make_shared<UdpConn>(destination, plan);
 }
-void UdpConn::Shutdown() { shutdown(fd_.Value(), SHUT_RDWR); }
+void UdpConn::Shutdown() { shutdown(fd_.GetValue(), SHUT_RDWR); }

@@ -18,12 +18,12 @@ void Sender::Start(Conn& conn, Test& test) {
       test.tx += sent;
       test.tx_packets++;
       tx_bits_ += sent * 8;
-      if (test.Finished()) {
+      if (test.IsFinished()) {
         break;
       }
     }
 
-    if (test.Finished()) {
+    if (test.IsFinished()) {
       break;
     }
   }

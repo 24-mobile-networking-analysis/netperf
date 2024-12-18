@@ -11,7 +11,7 @@ void StartReportThread(Test& test, double interval) {
       std::this_thread::sleep_for(
           Microseconds(static_cast<uint64_t>(interval * 1000000)));
 
-      if (test.Finished()) {
+      if (test.IsFinished()) {
         break;
       }
 
